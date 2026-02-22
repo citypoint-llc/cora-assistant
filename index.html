@@ -215,6 +215,12 @@
       font-size: 0.95rem;
     }
 
+    .bubble p { margin-bottom: 0.6em; }
+    .bubble p:last-child { margin-bottom: 0; }
+    .bubble ul, .bubble ol { padding-left: 1.4em; margin-bottom: 0.6em; }
+    .bubble li { margin-bottom: 0.25em; }
+    .bubble strong { font-weight: 600; }
+
     .message.user .bubble {
       background: var(--green-deep);
       color: var(--white);
@@ -394,6 +400,7 @@
           <button class="sample-q" onclick="useSample(this)">How do I handle a cash donation?</button>
           <button class="sample-q" onclick="useSample(this)">Should I refrigerate bananas?</button>
           <button class="sample-q" onclick="useSample(this)">What goes in a CORApacks box?</button>
+          <button class="sample-q" onclick="useSample(this)">How do I use Link2Feed?</button>
         </div>
       </div>
 
@@ -459,6 +466,22 @@
       }
     }
 
+    // ── Render markdown to HTML ───────────────────────────
+    function renderMarkdown(text) {
+      return text
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // Bullet lists
+        .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+        // Numbered lists
+        .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+        // Line breaks into paragraphs
+        .split(/\n{2,}/)
+        .map(block => block.startsWith('<ul>') || block.startsWith('<ol>') ? block : `<p>${block.replace(/\n/g, '<br>')}</p>`)
+        .join('');
+    }
+
     // ── Append a message bubble ───────────────────────────
     function appendMessage(role, text) {
       const container = document.getElementById('messages');
@@ -471,7 +494,11 @@
 
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
-      bubble.textContent = text;
+      if (role === 'assistant') {
+        bubble.innerHTML = renderMarkdown(text);
+      } else {
+        bubble.textContent = text;
+      }
 
       div.appendChild(label);
       div.appendChild(bubble);

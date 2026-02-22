@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CORA SOP Assistant — Pilot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green-deep:   #1a4a2e;
+      --green-mid:    #2d6e47;
+      --green-light:  #e8f2ec;
+      --green-accent: #4a9e68;
+      --white:        #ffffff;
+      --gray-soft:    #f4f6f5;
+      --gray-border:  #d0dbd4;
+      --gray-text:    #4a5a50;
+      --text-dark:    #1a2e22;
+      --shadow:       0 2px 12px rgba(26,74,46,0.10);
+      --radius:       10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Sans 3', sans-serif;
+      background: var(--green-light);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-dark);
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      background: var(--green-deep);
+      padding: 22px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+
+    .logo-mark {
+      width: 44px;
+      height: 44px;
+      background: var(--green-accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      color: var(--white);
+      letter-spacing: 0.01em;
+    }
+
+    .header-text p {
+      font-size: 0.78rem;
+      color: var(--green-accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── Main container ── */
+    main {
+      width: 100%;
+      max-width: 720px;
+      padding: 32px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Passphrase gate ── */
+    #gate {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 40px 36px;
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+
+    #gate h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--green-deep);
+      margin-bottom: 10px;
+    }
+
+    #gate p {
+      color: var(--gray-text);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .gate-input-row {
+      display: flex;
+      gap: 10px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    #passphrase-input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1.5px solid var(--gray-border);
+      border-radius: 7px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 1rem;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #passphrase-input:focus {
+      border-color: var(--green-mid);
+    }
+
+    #gate-error {
+      color: #c0392b;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    /* ── Chat interface ── */
+    #chat {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .intro-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px 28px;
+      border-left: 4px solid var(--green-accent);
+    }
+
+    .intro-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--green-deep);
+      margin-bottom: 8px;
+    }
+
+    .intro-card p {
+      color: var(--gray-text);
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }
+
+    .sample-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .sample-q {
+      background: var(--green-light);
+      border: 1px solid var(--gray-border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.83rem;
+      color: var(--green-deep);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      font-family: 'Source Sans 3', sans-serif;
+    }
+
+    .sample-q:hover {
+      background: var(--green-mid);
+      color: var(--white);
+      border-color: var(--green-mid);
+    }
+
+    /* ── Messages ── */
+    #messages {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: slideUp 0.3s ease;
+    }
+
+    .message.user { align-items: flex-end; }
+    .message.assistant { align-items: flex-start; }
+
+    .bubble {
+      padding: 13px 17px;
+      border-radius: 10px;
+      max-width: 90%;
+      line-height: 1.65;
+      font-size: 0.95rem;
+    }
+
+    .message.user .bubble {
+      background: var(--green-deep);
+      color: var(--white);
+      border-bottom-right-radius: 3px;
+    }
+
+    .message.assistant .bubble {
+      background: var(--white);
+      color: var(--text-dark);
+      box-shadow: var(--shadow);
+      border-bottom-left-radius: 3px;
+    }
+
+    .message-label {
+      font-size: 0.75rem;
+      color: var(--gray-text);
+      padding: 0 4px;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Input area ── */
+    .input-area {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    #question-input {
+      flex: 1;
+      border: 1.5px solid var(--gray-border);
+      border-radius: 7px;
+      padding: 11px 14px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+      resize: none;
+      min-height: 46px;
+      max-height: 120px;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.5;
+    }
+
+    #question-input:focus {
+      border-color: var(--green-mid);
+    }
+
+    #question-input::placeholder {
+      color: #aab8b0;
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: var(--green-deep);
+      color: var(--white);
+      border: none;
+      border-radius: 7px;
+      padding: 11px 20px;
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--green-mid);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* ── Loading indicator ── */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 14px 17px;
+      background: var(--white);
+      border-radius: 10px;
+      border-bottom-left-radius: 3px;
+      box-shadow: var(--shadow);
+      width: fit-content;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      background: var(--green-accent);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* ── Pilot badge ── */
+    .pilot-badge {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--gray-text);
+      letter-spacing: 0.04em;
+    }
+
+    .pilot-badge span {
+      background: var(--white);
+      border: 1px solid var(--gray-border);
+      border-radius: 20px;
+      padding: 4px 12px;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30%           { transform: translateY(-6px); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-mark">C</div>
+    <div class="header-text">
+      <h1>DEMO for Standard Operating Procedures chat</h1>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- PASSPHRASE GATE -->
+    <section id="gate">
+      <h2>Welcome</h2>
+      <p>This is a rough draft of a tool that could help staff and volunteers quickly find answers from CORA's Standard Operating Procedures. Enter the access code to continue.</p>
+      <div class="gate-input-row">
+        <input
+          type="password"
+          id="passphrase-input"
+          placeholder="Access code"
+          autocomplete="off"
+        />
+        <button class="btn-primary" onclick="checkPassphrase()">Enter</button>
+      </div>
+      <div id="gate-error"></div>
+    </section>
+
+    <!-- CHAT INTERFACE -->
+    <section id="chat">
+
+      <div class="intro-card">
+        <h2>Ask anything about CORA's SOPs</h2>
+        <p>This assistant answers questions based on CORA's Standard Operating Procedures. It will tell you which section its answer comes from — and if something isn't covered in the SOPs, it will say so.</p>
+        <div class="sample-questions">
+          <button class="sample-q" onclick="useSample(this)">What do I do if the wifi is down during intake?</button>
+          <button class="sample-q" onclick="useSample(this)">Can a neighbor borrow a shopping cart?</button>
+          <button class="sample-q" onclick="useSample(this)">How do I handle a cash donation?</button>
+          <button class="sample-q" onclick="useSample(this)">Should I refrigerate bananas?</button>
+          <button class="sample-q" onclick="useSample(this)">What goes in a CORApacks box?</button>
+        </div>
+      </div>
+
+      <div id="messages"></div>
+
+      <div class="input-area">
+        <textarea
+          id="question-input"
+          placeholder="Type your question here…"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="btn-primary" id="send-btn" onclick="sendQuestion()">Ask</button>
+      </div>
+
+      <p class="pilot-badge"><span>⚠ Pilot demo · Answers are grounded in CORA's SOPs but may not be complete · Always verify with a staff member for critical decisions</span></p>
+
+    </section>
+
+  </main>
+
+  <script>
+    const PASSPHRASE = 'Demo#1';
+
+    // ── Gate ──────────────────────────────────────────────
+    function checkPassphrase() {
+      const input = document.getElementById('passphrase-input').value.trim();
+      if (input === PASSPHRASE) {
+        document.getElementById('gate').style.display = 'none';
+        const chat = document.getElementById('chat');
+        chat.style.display = 'flex';
+        document.getElementById('question-input').focus();
+      } else {
+        document.getElementById('gate-error').textContent = 'Incorrect access code. Please try again.';
+        document.getElementById('passphrase-input').value = '';
+        document.getElementById('passphrase-input').focus();
+      }
+    }
+
+    document.getElementById('passphrase-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') checkPassphrase();
+    });
+
+    // ── Sample questions ──────────────────────────────────
+    function useSample(btn) {
+      document.getElementById('question-input').value = btn.textContent;
+      autoResize(document.getElementById('question-input'));
+      sendQuestion();
+    }
+
+    // ── Auto-resize textarea ──────────────────────────────
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    // ── Handle Enter key ──────────────────────────────────
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendQuestion();
+      }
+    }
+
+    // ── Append a message bubble ───────────────────────────
+    function appendMessage(role, text) {
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = `message ${role}`;
+
+      const label = document.createElement('div');
+      label.className = 'message-label';
+      label.textContent = role === 'user' ? 'You' : 'SOP Assistant';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+
+      div.appendChild(label);
+      div.appendChild(bubble);
+      container.appendChild(div);
+      div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      return div;
+    }
+
+    // ── Typing indicator ──────────────────────────────────
+    function showTyping() {
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'message assistant';
+      div.id = 'typing';
+
+      const label = document.createElement('div');
+      label.className = 'message-label';
+      label.textContent = 'SOP Assistant';
+
+      const indicator = document.createElement('div');
+      indicator.className = 'typing-indicator';
+      indicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+      div.appendChild(label);
+      div.appendChild(indicator);
+      container.appendChild(div);
+      div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    function removeTyping() {
+      const el = document.getElementById('typing');
+      if (el) el.remove();
+    }
+
+    // ── Send question ─────────────────────────────────────
+    async function sendQuestion() {
+      const input = document.getElementById('question-input');
+      const btn = document.getElementById('send-btn');
+      const question = input.value.trim();
+
+      if (!question) return;
+
+      // Show user message
+      appendMessage('user', question);
+      input.value = '';
+      autoResize(input);
+      btn.disabled = true;
+      showTyping();
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await response.json();
+        removeTyping();
+
+        if (data.error) {
+          appendMessage('assistant', 'Sorry, something went wrong. Please try again or check with a staff member.');
+        } else {
+          appendMessage('assistant', data.answer);
+        }
+
+      } catch (err) {
+        removeTyping();
+        appendMessage('assistant', 'Unable to reach the assistant right now. Please try again in a moment.');
+      }
+
+      btn.disabled = false;
+      input.focus();
+    }
+  </script>
+
+</body>
+</html>
